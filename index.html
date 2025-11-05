@@ -1,70 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Gabriela Zeng CV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9f9f9;
-      margin: 40px;
+      background-color: #f6f7f9;
+      margin: 0;
     }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: clamp(12px, 4vw, 32px);
+      text-align: center;
+    }
+
     h1 {
       color: #333;
+      margin: 8px 0 14px;
+      line-height: 1.2;
     }
-    iframe {
-      width: 90%;
-      height: 800px;
-      border: none;
-      margin-top: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      justify-items: center;
+      margin-bottom: 14px;
     }
+
     .button {
       display: inline-block;
       background-color: #007bff;
-      color: white;
+      color: #fff;
       padding: 12px 20px;
-      border-radius: 6px;
+      border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
-      margin-top: 20px;
       cursor: pointer;
       border: none;
+      width: min(420px, 92%);
     }
-    .button:hover {
-      background-color: #0056b3;
+    .button.secondary { background-color: #4a5568; }
+    .button:hover { filter: brightness(0.92); }
+
+    .viewer {
+      width: 100%;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* 预览高度：桌面更高，手机略收一点，避免过满 */
+    iframe {
+      display: block;
+      width: 100%;
+      height: 78vh;
+      border: none;
+      background: #fff;
+    }
+    @media (max-width: 640px) {
+      iframe { height: 66vh; }
     }
   </style>
 </head>
 <body>
-  <h1>Gabriela Zeng CV</h1>
+  <div class="page">
+    <h1>Gabriela Zeng CV</h1>
 
-  <button id="downloadBtn" class="button">📄 Download Resume (PDF)</button>
-  <iframe src="Gabriela_Zeng_CV.pdf"></iframe>
+    <div class="actions">
+      <!-- new tab 打开（手机体验最好） -->
+      <a id="openTab" class="button secondary" href="Gabriela_Zeng_CV.pdf" target="_blank" rel="noopener">
+        🔗 open pdf in a new tab
+      </a>
+      <!-- 一键下载（跨浏览器可靠） -->
+      <button id="downloadBtn" class="button">📄 download resume (pdf)</button>
+    </div>
+
+    <!-- 内嵌预览（桌面直接用原生 PDF；移动端自动切换为 Google Docs Viewer） -->
+    <div class="viewer">
+      <iframe id="pdfFrame" title="Gabriela_Zeng_CV"></iframe>
+    </div>
+  </div>
 
   <script>
+    // 你的 pdf 文件名（若变更，这里和上面的 href 也要同步改）
+    const PDF_NAME = 'Gabriela_Zeng_CV.pdf';
+
+    // 生成绝对地址，便于给 Google Docs Viewer 使用
+    const pdfAbsoluteURL = new URL(PDF_NAME, window.location.href).href;
+
+    // 判断是否为移动端
+    const IS_MOBILE = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // 设置 iframe 源：桌面用原生 pdf，手机用 Google Docs Viewer（更稳）
+    const iframe = document.getElementById('pdfFrame');
+    if (IS_MOBILE) {
+      iframe.src = 'https://drive.google.com/viewerng/viewer?embedded=true&url=' + encodeURIComponent(pdfAbsoluteURL);
+    } else {
+      iframe.src = PDF_NAME;
+    }
+
+    // 强制下载（解决部分浏览器忽略 <a download> 的问题）
     document.getElementById('downloadBtn').addEventListener('click', async () => {
-      const pdfPath = 'Gabriela_Zeng_CV.pdf';
       try {
-        const resp = await fetch(pdfPath);
-        if (!resp.ok) throw new Error('File not found');
+        const resp = await fetch(PDF_NAME, { cache: 'no-store' });
+        if (!resp.ok) throw new Error('file not found');
         const blob = await resp.blob();
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Gabriela_Zeng_CV.pdf';
+        a.download = 'Gabriela_Zeng_CV.pdf'; // 保存时的默认文件名
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
       } catch (err) {
-        alert('File not found. Please check the PDF name or path.');
+        alert('file not found. please check the pdf name or path.');
         console.error(err);
       }
     });
+
+    // 同步“open in new tab”的链接到绝对地址（更稳）
+    const openTabLink = document.getElementById('openTab');
+    openTabLink.href = pdfAbsoluteURL;
   </script>
 </body>
 </html>
+
+
 
